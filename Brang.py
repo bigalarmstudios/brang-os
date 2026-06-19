@@ -1,4 +1,5 @@
 import pygame
+import os
 
 pygame.init()
 pygame.font.init()
@@ -21,7 +22,8 @@ player_size = 50
 player_x = width // 2 - player_size // 2
 player_y = height // 2 - player_size // 2
 player_speed = 20
-admin_logo = pygame.image.load("Brang_pic/admin_logo.png")
+script_dir = os.path.dirname(os.path.abspath(__file__))
+admin_logo = pygame.image.load(os.path.join(script_dir, "Brang_pic", "admin_logo.png"))
 screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
 clock = pygame.time.Clock()
 login = True
