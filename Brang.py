@@ -7,7 +7,9 @@ pygame.font.init()
 # ─── Setup “boxes” and fonts/colors ─────────────────────────────────────────
 # Positions and sizes are identical to your original.
 admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
-start_box        = [pygame.Rect(1020, 90, 100, 100)]
+start_box        = [pygame.Rect(1150, 90, 100, 100)]
+start_back_box = [pygame.Rect(1150, 340, 100, 100)]
+start_manual_box = [pygame.Rect(1150, 220, 100, 100)]
 
 # Fonts (same as before)
 font       = pygame.font.SysFont('Arial', 120)
@@ -69,6 +71,13 @@ while running:
                         admin_wallpaper = True
                         break
 
+                # If clicked inside the blue “Back” box → go back to login screen
+                for bb in start_back_box:
+                    if bb.collidepoint(mx, my):
+                        admin_start_confirm = False
+                        login = True
+                        break
+
     # ── MAKE PLAYER FOLLOW THE MOUSE ────────────────────────────────────────
     mouse_x, mouse_y = pygame.mouse.get_pos()
     player.center = (mouse_x, mouse_y)
@@ -94,16 +103,22 @@ while running:
 
     elif admin_start_confirm:
         screen.fill(BLUE)
-        # Draw player square (white) on the admin screen
+        # Draw cursor
         pygame.draw.rect(screen, WHITE, player)
 
-        # Draw “start manual” text
-        screen.blit(font.render("start", True, GREEN), (800, 60))
+        # Draw text
+        screen.blit(font.render("start", True, GREEN), (700, 80))
         screen.blit(font.render("manual", True, GREEN), (700, 200))
+        screen.blit(font.render("back", True, GREEN), (700, 330))
 
-        # Draw green Start box
+        # Draw the boxes
         for sb in start_box:
             pygame.draw.rect(screen, GREEN, sb)
+        # Draw blue Back box
+        for bb in start_back_box:
+            pygame.draw.rect(screen, RED, bb)
+        for mb in start_manual_box:
+            pygame.draw.rect(screen, GREEN, mb)
 
     # If “Start” was clicked, fire admin_wallpaper_def() once
     if admin_wallpaper:
