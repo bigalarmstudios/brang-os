@@ -19,7 +19,9 @@ font_admin = pygame.font.SysFont('Arial', 50)
 WHITE  = (255, 255, 255)
 BLUE   = (0, 0, 255)
 GREEN  = (0, 255, 0)
+ORANGE = (255, 165, 0)
 RED    = (255, 0, 0)
+
 
 # Window size
 width, height = 1920, 1080
