@@ -14,10 +14,10 @@ screen = pygame.display.set_mode((1920, 1080))
 
 # specify all the variables
 admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
-start_box         = [pygame.Rect(1150, 90, 100, 100)]
+start_box         = [pygame.Rect(1150, 85, 100, 100)]
 start_back_box    = [pygame.Rect(1150, 340, 100, 100)]
 start_manual_box  = [pygame.Rect(1150, 210, 100, 100)]
-manual_back_box   = [pygame.Rect(1150, 340, 100, 100)]
+manual_back_box   = [pygame.Rect(1800, 35, 100, 100)]
 
 # game states
 login               = True   # Start on “login” screen
@@ -140,6 +140,7 @@ while running:
     elif manual_screen:
         screen.fill(BLUE)
         screen.blit(font.render("manual", True, GREEN), (750, 20))
+        screen.blit(font.render("back", True, GREEN), (1500, 20))
         
         for bb in manual_back_box:
             pygame.draw.rect(screen, RED, bb)
@@ -161,7 +162,9 @@ while running:
         screen.blit(font_manual_text.render(manual_text[5], True, GREEN), (100, 350))
 
         pygame.draw.rect(screen, WHITE, player)
-
+    elif admin_wallpaper:
+        screen.fill(BLUE)
+        pygame.draw.rect(screen, WHITE, player)
     # If “Start” was clicked, fire admin_wallpaper_def() once
     if admin_wallpaper:
         admin_wallpaper_def()
