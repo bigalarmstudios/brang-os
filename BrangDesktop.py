@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import requests
 
 # 1. Setup Pygame
 pygame.init()
