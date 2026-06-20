@@ -7,7 +7,7 @@ import requests
 pygame.init()
 pygame.font.init()
 screen = pygame.display.set_mode((1280, 720))  # Slightly smaller for easy testing
-pygame.display.set_caption("Brang OS - File Explorer Test")
+pygame.display.set_caption("Brang OS")
 clock = pygame.time.Clock()
 
 # 2. Setup Fonts & Colors

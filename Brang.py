@@ -1,5 +1,8 @@
 import pygame
 import random
+import os
+import subprocess
+import sys
 
 # Placeholder function so the script doesn't crash when 'start' is clicked
 def admin_wallpaper_def():
@@ -169,7 +172,17 @@ while running:
     if admin_wallpaper:
         admin_wallpaper_def()
         admin_wallpaper = False  # Ensure it prints only one time per click
-    
+        
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        os.chdir(script_dir)
+        
+        # 1. Launch the second file independently in the background
+        subprocess.Popen([sys.executable, "BrangDesktopTest.py"])
+        
+        # 2. Kill the current game loop and shut down this program completely
+        running = False
+        pygame.quit()
+        sys.exit()
     pygame.display.flip()
 
 pygame.quit()
