@@ -1,17 +1,23 @@
 import pygame
 import random
 
+# set everything up
 pygame.init()
 pygame.font.init()
-
-# ─── Setup “boxes” and fonts/colors ─────────────────────────────────────────
-# Positions and sizes are identical to your original.
+pygame.display.set_mode((1920, 1080))
+# specify all the variables
 admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
 start_box        = [pygame.Rect(1150, 90, 100, 100)]
 start_back_box = [pygame.Rect(1150, 340, 100, 100)]
 start_manual_box = [pygame.Rect(1150, 210, 100, 100)]
-
-# Fonts (same as before)
+manual_back_box = [pygame.Rect(1150, 340, 100, 100)]
+# game states
+login               = True   # Start on “login” screen
+running             = True
+admin_start_confirm = False  # Moves to admin screen once Admin‐box is clicked
+admin_wallpaper     = False  # Fires admin_wallpaper_def() once
+manual_screen       = False  # Placeholder for future manual screen state
+# Fonts
 font       = pygame.font.SysFont('Arial', 120)
 font_admin = pygame.font.SysFont('Arial', 50)
 font_manual_text = pygame.font.SysFont('Arial', 30)
@@ -21,13 +27,11 @@ WHITE  = (255, 255, 255)
 BLUE   = (0, 0, 255)
 GREEN  = (0, 255, 0)
 ORANGE = (255, 165, 0)
+
 RED    = (255, 0, 0)
-
-
 # Window size
 width, height = 1920, 1080
-
-# ─── Player setup ────────────────────────────────────────────────────────────
+# player setup
 player_size = 50
 player = pygame.Rect(
     width // 2 - player_size // 2,
@@ -35,22 +39,13 @@ player = pygame.Rect(
     player_size,
     player_size
 )
+player.x = max(0, min(player.x, width - player_size))
+player.y = max(0, min(player.y, height - player_size))
+mouse_x, mouse_y = pygame.mouse.get_pos()
+player.center = (mouse_x, mouse_y)
+pygame.display.set_caption("Brang OS")
 
-screen = pygame.display.set_mode((width, height), pygame.RESIZABLE)
-pygame.display.set_caption("Brang (Mouse‐Follow Version)")
-
-# ─── Game states ─────────────────────────────────────────────────────────────
-login               = True   # Start on “login” screen
-running             = True
-admin_start_confirm = False  # Moves to admin screen once Admin‐box is clicked
-admin_wallpaper     = False  # Fires admin_wallpaper_def() once
-manual_screen       = False  # Placeholder for future manual screen state
-
-# ─── Placeholder function for “Start” click ─────────────────────────────────
-def admin_wallpaper_def():
-    print("Admin wallpaper activated!")  # Replace with your real wallpaper logic
-
-# ─── Main loop ───────────────────────────────────────────────────────────────
+# The main script
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -87,15 +82,8 @@ while running:
                         manual_screen = True  # Placeholder for future manual screen logic
                         break
 
-    # ── MAKE PLAYER FOLLOW THE MOUSE ────────────────────────────────────────
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    player.center = (mouse_x, mouse_y)
 
-    # ── CLAMP player INSIDE WINDOW BOUNDS ──────────────────────────────────
-    player.x = max(0, min(player.x, width - player_size))
-    player.y = max(0, min(player.y, height - player_size))
-
-    # ── DRAWING ──────────────────────────────────────────────────────────────
+    # drawing
     if login:
         screen.fill(WHITE)
         screen.blit(font.render("log in", True, GREEN), (850, 60))
@@ -136,14 +124,16 @@ while running:
     if manual_screen:
         screen.fill(BLUE)
         screen.blit(font.render("manual", True, GREEN), (750, 20))
+        for bb in manual_back_box:
+            pygame.draw.rect(screen, RED, bb)
         # the manual text
         manual_text = [
-            "Welcome to the Brang Os!",
-            "1. Click 'Admin' to access admin features.",
-            "2. Click 'Start' to activate the admin wallpaper.",
-            "3. Click 'Back' to return to the login screen.",
-            "4. Move your mouse to control the player square.",
-            "5. Enjoy exploring the game!"
+            "Welcome to the Brang OS!",
+            "- use your mouse to control your square.",
+            "- use your left mouse button on top of buttons to select them.",
+            "- The rest of the things are self-explanatory.",
+            "website: https://bigalarmstudios.com",
+            "WARNING! If you payed for this, you got scammed. This is free."
         ]
         screen.blit(font_manual_text.render(manual_text[0], True, GREEN), (100, 100))
         screen.blit(font_manual_text.render(manual_text[1], True, GREEN), (100, 150))
