@@ -1,5 +1,6 @@
 import pygame
-import random
+import os
+import subprocess
 
 # set everything up
 pygame.init()
@@ -7,6 +8,11 @@ pygame.font.init()
 
 # Assigned display to the 'screen' variable
 screen = pygame.display.set_mode((1920, 1080))
+
+# Get the directory of THIS desktop script to calculate paths cleanly
+DESKTOP_DIR = os.path.dirname(os.path.abspath(__file__))
+# Map the path to where fetchCatalogue.py lives relative to this file
+FETCH_SCRIPT_PATH = os.path.join(DESKTOP_DIR, "programs", "fetchCatalogue.py")
 
 # specify all the variables
 admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
@@ -45,35 +51,25 @@ player = pygame.Rect(
 
 pygame.display.set_caption("Brang OS")
 
-
-# ── SCALABLE APP SYSTEM WITH INSTALL CHECKS ──────────────────────────────
-# We've added an "installed" key. 
-# Only apps set to True will render on the desktop canvas.
+# SCALABLE APP SYSTEM WITH INSTALL CHECKS
 apps_list = [
-    {"name": "Big Alarm Store", "x": 250, "y": 120, "installed": True},  # Store is pre-installed
-    {"name": "Chat App",        "x": 400, "y": 120, "installed": False}, # Waiting for download script
-    {"name": "File Explorer",   "x": 550, "y": 120, "installed": False}, # Waiting for download script
-    {"name": "Settings",        "x": 700, "y": 120, "installed": True}   # Settings is pre-installed
+    {"name": "Big Alarm Store", "x": 250, "y": 120, "installed": True},
+    {"name": "Chat App",        "x": 400, "y": 120, "installed": False},
+    {"name": "File Explorer",   "x": 550, "y": 120, "installed": False},
+    {"name": "Settings",        "x": 700, "y": 120, "installed": True}
 ]
 
 def draw_app(screen, x, y, title):
     """Draws an icon, its borders, and its text dynamically at any X, Y position"""
-    # Draw main icon box
     pygame.draw.rect(screen, APPSTORE_BLUE, (x, y, 100, 100))
-    
-    # Draw app borders relative to the starting x and y
     pygame.draw.rect(screen, APPEDGE, (x, y, 100, 10))        # Top
     pygame.draw.rect(screen, APPEDGE, (x, y, 10, 100))        # Left
     pygame.draw.rect(screen, APPEDGE, (x + 90, y, 10, 100))   # Right
     pygame.draw.rect(screen, APPEDGE, (x, y + 90, 100, 10))   # Bottom
-    
-    # Draw text right below the icon
     text_surface = font.render(title, True, WHITE)
     screen.blit(text_surface, (x, y + 110))
-# ─────────────────────────────────────────────────────────────────────────
 
-
-# The main script
+# Main game loop
 while running:
     mouse_x, mouse_y = pygame.mouse.get_pos()
     player.center = (mouse_x, mouse_y)
@@ -89,18 +85,32 @@ while running:
             mx, my = event.pos
 
             if desktop:
-                for appstore in appstore:
-                    if appstore.collidepoint(mx, my):
-                        storeOpened = True
-                        desktop = False
-                        break
+                # Find the "Big Alarm Store" icon in your list
+                for app in apps_list:
+                    if app["name"] == "Big Alarm Store":
+                        # Create a clickable boundary matching where draw_app draws it
+                        store_rect = pygame.Rect(app["x"], app["y"], 100, 100)
+                        if store_rect.collidepoint(mx, my):
+                            storeOpened = True
+                            desktop = False
+                            
+                            # ── LAUNCH THE EXTERNAL FETCH SCRIPT ──
+                            print(f"[OS] Launching external catalog downloader at: {FETCH_SCRIPT_PATH}")
+                            # This safely pops open a native terminal window to execute the script!
+                            subprocess.Popen(["start", "cmd", "/c", "python", FETCH_SCRIPT_PATH], shell=True)
+                            break
+            
+            elif storeOpened:
+                # Simple back button click mapping (Click top left to go back to desktop)
+                if pygame.Rect(20, 20, 100, 50).collidepoint(mx, my):
+                    desktop = True
+                    storeOpened = False
 
-    # drawing
+    # Drawing Canvas
     if desktop:
         screen.fill(BLUE)
         pygame.draw.rect(screen, LIGHT_BLUE, extra_background_box[0])
         
-        # Loop through our app list and ONLY render them if installed is True
         for app in apps_list:
             if app["installed"]:
                 draw_app(screen, app["x"], app["y"], app["name"])
@@ -108,11 +118,15 @@ while running:
         pygame.draw.rect(screen, BLUE, player)
     
     elif storeOpened:
-        appliststatus = "Fetching"
         screen.fill(APPSTORE_BLUE)
         screen.blit(font.render("Big Alarm Store", True, WHITE), (850, 60))
-        screen.blit(appslist_font.render("Available Apps:", True, WHITE), (100, 150))
-        screen.blit(appslist_font.render(appliststatus, True, WHITE), (100, 200))
+        
+        # Draw a quick back button interface
+        pygame.draw.rect(screen, RED, (20, 20, 100, 50))
+        screen.blit(font.render("Back", True, WHITE), (45, 30))
+        
+        screen.blit(appslist_font.render("Terminal store window opened!", True, WHITE), (100, 150))
+        screen.blit(appslist_font.render("Look at your command line to select downloads.", True, WHITE), (100, 200))
     
     pygame.display.flip()
 
