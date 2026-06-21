@@ -1,135 +1,119 @@
 import pygame
-import os
-import sys
-import requests
+import random
 
-# 1. Setup Pygame
+# set everything up
 pygame.init()
 pygame.font.init()
-screen = pygame.display.set_mode((1280, 720))  # Slightly smaller for easy testing
+
+# Assigned display to the 'screen' variable
+screen = pygame.display.set_mode((1920, 1080))
+
+# specify all the variables
+admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
+extra_background_box = [pygame.Rect(210, 80, 1500, 900)]
+
+# game states
+desktop            = True
+running            = True
+storeOpened        = False
+
+# Fonts
+font = pygame.font.SysFont('Arial', 24)
+appslist_font = pygame.font.SysFont('Arial', 20)
+
+# Colors
+WHITE  = (255, 255, 255)
+BLUE   = (0, 0, 255)
+GREEN  = (0, 255, 0)
+ORANGE = (255, 165, 0)
+RED    = (255, 0, 0)
+LIGHT_BLUE = (45, 210, 255)
+APPSTORE_BLUE = (52, 199, 255)
+APPEDGE = (150, 150, 150)
+
+# Window size
+width, height = 1920, 1080
+
+# player setup
+player_size = 50
+player = pygame.Rect(
+    width // 2 - player_size // 2,
+    height // 2 - player_size // 2,
+    player_size,
+    player_size
+)
+
 pygame.display.set_caption("Brang OS")
-clock = pygame.time.Clock()
 
-# 2. Setup Fonts & Colors
-font_small = pygame.font.SysFont('Arial', 18)
-font_title = pygame.font.SysFont('Arial', 16, bold=True)
 
-WHITE     = (255, 255, 255)
-LIGHT_GRAY = (220, 220, 220)
-DARK_GRAY  = (60, 60, 60)
-BLUE      = (30, 100, 200)
-TITLE_BLUE = (45, 120, 230)
-RED       = (220, 50, 50)
-YELLOW    = (240, 200, 40)
-BLACK     = (0, 0, 0)
+# ── SCALABLE APP SYSTEM WITH INSTALL CHECKS ──────────────────────────────
+# We've added an "installed" key. 
+# Only apps set to True will render on the desktop canvas.
+apps_list = [
+    {"name": "Big Alarm Store", "x": 250, "y": 120, "installed": True},  # Store is pre-installed
+    {"name": "Chat App",        "x": 400, "y": 120, "installed": False}, # Waiting for download script
+    {"name": "File Explorer",   "x": 550, "y": 120, "installed": False}, # Waiting for download script
+    {"name": "Settings",        "x": 700, "y": 120, "installed": True}   # Settings is pre-installed
+]
 
-# 3. Choose Folder to Scan
-# '.' means the current folder where this script is saved.
-TARGET_FOLDER = 'downloads' 
-try:
-    file_list = os.listdir(TARGET_FOLDER)
-except Exception as e:
-    file_list = ["Error reading directory"]
-
-# 4. Desktop Variables
-folder_icon_rect = pygame.Rect(50, 50, 70, 70)
-last_click_time = 0
-double_click_threshold = 300 # Milliseconds to register a double-click
-
-# 5. Window State Variables
-window_open = False
-window_rect = pygame.Rect(300, 200, 450, 300)
-title_bar_height = 30
-is_dragging = False
-drag_offset_x = 0
-drag_offset_y = 0
-
-# Close Button bounds (relative to the window positions)
-close_btn_width = 35
-
-# Main Loop
-running = True
-while running:
-    mx, my = pygame.mouse.get_pos()
+def draw_app(screen, x, y, title):
+    """Draws an icon, its borders, and its text dynamically at any X, Y position"""
+    # Draw main icon box
+    pygame.draw.rect(screen, APPSTORE_BLUE, (x, y, 100, 100))
     
-    # Title bar calculation changes dynamically as window moves
-    title_bar_rect = pygame.Rect(window_rect.x, window_rect.y, window_rect.width, title_bar_height)
-    close_btn_rect = pygame.Rect(window_rect.right - close_btn_width - 5, window_rect.y + 4, close_btn_width, title_bar_height - 8)
+    # Draw app borders relative to the starting x and y
+    pygame.draw.rect(screen, APPEDGE, (x, y, 100, 10))        # Top
+    pygame.draw.rect(screen, APPEDGE, (x, y, 10, 100))        # Left
+    pygame.draw.rect(screen, APPEDGE, (x + 90, y, 10, 100))   # Right
+    pygame.draw.rect(screen, APPEDGE, (x, y + 90, 100, 10))   # Bottom
+    
+    # Draw text right below the icon
+    text_surface = font.render(title, True, WHITE)
+    screen.blit(text_surface, (x, y + 110))
+# ─────────────────────────────────────────────────────────────────────────
 
-    # Handle Events
+
+# The main script
+while running:
+    mouse_x, mouse_y = pygame.mouse.get_pos()
+    player.center = (mouse_x, mouse_y)
+    player.x = max(0, min(player.x, width - player_size))
+    player.y = max(0, min(player.y, height - player_size))
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
+        # ── LEFT MOUSE BUTTON DOWN ──────────────────────────────────────────
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            
-            # --- FOLDER ICON INTERACTION ---
-            if folder_icon_rect.collidepoint(mx, my):
-                current_time = pygame.time.get_ticks()
-                if current_time - last_click_time < double_click_threshold:
-                    # Double click detected! Open the window
-                    window_open = True
-                last_click_time = current_time
+            mx, my = event.pos
 
-            # --- WINDOW INTERACTION (If open) ---
-            if window_open:
-                # Check for Close Button click
-                if close_btn_rect.collidepoint(mx, my):
-                    window_open = False
-                    is_dragging = False
-                
-                # Check for Header Dragging click
-                elif title_bar_rect.collidepoint(mx, my):
-                    is_dragging = True
-                    # Calculate exactly where inside the header you clicked so it doesn't snap awkwardly
-                    drag_offset_x = window_rect.x - mx
-                    drag_offset_y = window_rect.y - my
+            if desktop:
+                for appstore in appstore:
+                    if appstore.collidepoint(mx, my):
+                        storeOpened = True
+                        desktop = False
+                        break
 
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            is_dragging = False
-
-        elif event.type == pygame.MOUSEMOTION:
-            if is_dragging:
-                window_rect.x = mx + drag_offset_x
-                window_rect.y = my + drag_offset_y
-
-    # --- DRAWING ---
-    screen.fill(BLUE) # OS Wallpaper Background
-
-    # 1. Draw Folder Icon on Desktop
-    pygame.draw.rect(screen, YELLOW, folder_icon_rect, border_radius=4)
-    icon_text = font_small.render("My Files", True, WHITE)
-    screen.blit(icon_text, (folder_icon_rect.x + 10, folder_icon_rect.bottom + 5))
-
-    # 2. Draw GUI Window (Only if active)
-    if window_open:
-        # Window Main Body
-        pygame.draw.rect(screen, LIGHT_GRAY, window_rect)
-        pygame.draw.rect(screen, DARK_GRAY, window_rect, 2) # Outer border
-
-        # Title Bar / Window Header
-        pygame.draw.rect(screen, TITLE_BLUE, title_bar_rect)
-        window_title = font_title.render(f"Exploring: {TARGET_FOLDER}", True, WHITE)
-        screen.blit(window_title, (title_bar_rect.x + 10, title_bar_rect.y + 5))
-
-        # Close Button
-        pygame.draw.rect(screen, RED, close_btn_rect, border_radius=3)
-        x_text = font_title.render("X", True, WHITE)
-        screen.blit(x_text, (close_btn_rect.x + 12, close_btn_rect.y + 1))
-
-        # Render files inside window body
-        y_offset = window_rect.y + title_bar_height + 15
+    # drawing
+    if desktop:
+        screen.fill(BLUE)
+        pygame.draw.rect(screen, LIGHT_BLUE, extra_background_box[0])
         
-        # Slicing down to maximum 10 items so they don't leak out the bottom of the window box
-        for file in file_list[:10]:
-            # Simple icon representation text
-            display_text = f"📄 {file}"
-            text_surface = font_small.render(display_text, True, BLACK)
-            screen.blit(text_surface, (window_rect.x + 15, y_offset))
-            y_offset += 24
+        # Loop through our app list and ONLY render them if installed is True
+        for app in apps_list:
+            if app["installed"]:
+                draw_app(screen, app["x"], app["y"], app["name"])
 
+        pygame.draw.rect(screen, BLUE, player)
+    
+    elif storeOpened:
+        appliststatus = "Fetching"
+        screen.fill(APPSTORE_BLUE)
+        screen.blit(font.render("Big Alarm Store", True, WHITE), (850, 60))
+        screen.blit(appslist_font.render("Available Apps:", True, WHITE), (100, 150))
+        screen.blit(appslist_font.render(appliststatus, True, WHITE), (100, 200))
+    
     pygame.display.flip()
-    clock.tick(60)
 
 pygame.quit()
-sys.exit()
