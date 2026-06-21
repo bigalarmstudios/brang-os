@@ -17,6 +17,7 @@ FETCH_SCRIPT_PATH = os.path.join(DESKTOP_DIR, "programs", "fetchCatalogue.py")
 # specify all the variables
 admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
 extra_background_box = [pygame.Rect(210, 80, 1500, 900)]
+appstore_openagain_box = [pygame.Rect(1150, 85, 100, 100)]
 
 # game states
 desktop            = True
@@ -127,6 +128,9 @@ while running:
         
         screen.blit(appslist_font.render("Terminal store window opened!", True, WHITE), (100, 150))
         screen.blit(appslist_font.render("Look at your command line to select downloads.", True, WHITE), (100, 200))
+        pygame.draw.rect(screen, WHITE, appstore_openagain_box[0])
+        screen.blit(appslist_font.render("Open Store Again", True, WHITE), (1160, 120))
+
     
     pygame.display.flip()
 
