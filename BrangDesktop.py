@@ -13,6 +13,7 @@ screen = pygame.display.set_mode((1920, 1080))
 DESKTOP_DIR = os.path.dirname(os.path.abspath(__file__))
 # Map the path to where fetchCatalogue.py lives relative to this file
 FETCH_SCRIPT_PATH = os.path.join(DESKTOP_DIR, "programs", "fetchCatalogue.py")
+APPS_DIR = os.path.join(DESKTOP_DIR, "programs", "installedApps")
 
 # specify all the variables
 admin_user_screen = [pygame.Rect(200, 300, 300, 300)]
@@ -60,6 +61,37 @@ apps_list = [
     {"name": "Settings",        "x": 700, "y": 120, "installed": True}
 ]
 
+def check_installed_apps():
+    """Scans the installedApps folder and updates apps_list dynamically."""
+    if not os.path.exists(APPS_DIR):
+        return
+
+    for filename in os.listdir(APPS_DIR):
+        if filename.endswith(".py"):
+            app_name = filename[:-3] # Strip out the ".py" extension
+            
+            # Check if this app is already known in our list
+            already_tracked = False
+            for app in apps_list:
+                if app["name"].lower() == app_name.lower():
+                    app["installed"] = True
+                    already_tracked = True
+                    break
+            
+            # If it's a completely brand new app from GitHub, auto-calculate an X position for it
+            if not already_tracked:
+                # Find the next open slot on the X axis (spaced by 150 pixels)
+                next_x = 250 + (len([a for a in apps_list if a["installed"]]) * 150)
+                # Simple boundary check to wrap down to a second row if it exceeds screen width
+                next_y = 120
+                if next_x > 1600: 
+                    next_x = 250 + ((len(apps_list) % 8) * 150)
+                    next_y = 300
+                
+                new_app = {"name": app_name, "x": next_x, "y": next_y, "installed": True}
+                apps_list.append(new_app)
+                print(f"[OS] Detected new installed app: {app_name}, added to desktop.")
+
 def draw_app(screen, x, y, title):
     """Draws an icon, its borders, and its text dynamically at any X, Y position"""
     pygame.draw.rect(screen, APPSTORE_BLUE, (x, y, 100, 100))
@@ -67,7 +99,10 @@ def draw_app(screen, x, y, title):
     pygame.draw.rect(screen, APPEDGE, (x, y, 10, 100))        # Left
     pygame.draw.rect(screen, APPEDGE, (x + 90, y, 10, 100))   # Right
     pygame.draw.rect(screen, APPEDGE, (x, y + 90, 100, 10))   # Bottom
-    text_surface = font.render(title, True, WHITE)
+    
+    # Simple formatting: if name is too long, truncate it for the desktop UI
+    display_title = title if len(title) <= 12 else title[:10] + ".."
+    text_surface = font.render(display_title, True, WHITE)
     screen.blit(text_surface, (x, y + 110))
 
 # Main game loop
@@ -76,6 +111,9 @@ while running:
     player.center = (mouse_x, mouse_y)
     player.x = max(0, min(player.x, width - player_size))
     player.y = max(0, min(player.y, height - player_size))
+
+    # Real-time check: Constantly check directory updates while running
+    check_installed_apps()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -86,19 +124,19 @@ while running:
             mx, my = event.pos
 
             if desktop:
-                # Find the "Big Alarm Store" icon in your list
+                # Find if ANY installed app is clicked
                 for app in apps_list:
-                    if app["name"] == "Big Alarm Store":
-                        # Create a clickable boundary matching where draw_app draws it
+                    if app["installed"]:
                         store_rect = pygame.Rect(app["x"], app["y"], 100, 100)
                         if store_rect.collidepoint(mx, my):
-                            storeOpened = True
-                            desktop = False
-                            
-                            # ── LAUNCH THE EXTERNAL FETCH SCRIPT ──
-                            print(f"[OS] Launching external catalog downloader at: {FETCH_SCRIPT_PATH}")
-                            # This safely pops open a native terminal window to execute the script!
-                            subprocess.Popen(["start", "cmd", "/c", "python", FETCH_SCRIPT_PATH], shell=True)
+                            if app["name"] == "Big Alarm Store":
+                                storeOpened = True
+                                desktop = False
+                                print(f"[OS] Launching external catalog downloader at: {FETCH_SCRIPT_PATH}")
+                                subprocess.Popen(["start", "cmd", "/c", "python", FETCH_SCRIPT_PATH], shell=True)
+                            else:
+                                print(f"[OS] Launching downloaded app: {app['name']}")
+                                # You can add code here to run the newly downloaded apps via subprocess!
                             break
             
             elif storeOpened:
@@ -126,11 +164,11 @@ while running:
         pygame.draw.rect(screen, RED, (20, 20, 100, 50))
         screen.blit(font.render("Back", True, WHITE), (45, 30))
         
-        screen.blit(appslist_font.render("Terminal store window opened!", True, WHITE), (100, 150))
-        screen.blit(appslist_font.render("Look at your command line to select downloads.", True, WHITE), (100, 200))
+        screen.blit(appslist_font.render("Please wait... The selection menu is starting.", True, WHITE), (100, 150))
         pygame.draw.rect(screen, WHITE, appstore_openagain_box[0])
-        screen.blit(appslist_font.render("Open Store Again", True, WHITE), (1160, 120))
+        screen.blit(appslist_font.render("Open Store Again", True, WHITE), (1300, 120))
 
+        pygame.draw.rect(screen, BLUE, player)
     
     pygame.display.flip()
 

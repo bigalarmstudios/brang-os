@@ -32,7 +32,7 @@ def get_catalog():
     if os.path.exists(CACHE_FILE):
         file_age = time.time() - os.path.getmtime(CACHE_FILE)
         if file_age < one_day_in_seconds:
-            print("Loading catalog from local cache...")
+            print("Loading catalog...")
             with open(CACHE_FILE, "r", encoding="utf-8") as f:
                 return f.read()
 
@@ -41,7 +41,7 @@ def get_catalog():
 
 def refresh_catalog():
     """Forces a redownload of the catalog and overwrites the local cache file."""
-    print("Fetching fresh catalog from GitHub...")
+    print("Fetching catalogue...")
     raw_catalog = fetch_from_github(CATALOG_URL)
     
     if raw_catalog:
@@ -49,7 +49,7 @@ def refresh_catalog():
         os.makedirs(CACHE_DIR, exist_ok=True)
         with open(CACHE_FILE, "w", encoding="utf-8") as f:
             f.write(raw_catalog)
-        print("✓ Local cache updated successfully.")
+        print("✓ Catalog updated successfully!")
         return raw_catalog
     return None
 
@@ -58,7 +58,7 @@ def main():
     raw_catalog = get_catalog()
     
     if not raw_catalog:
-        print("Could not load catalog list. Please check your internet connection.")
+        print("Could not load catalog list. Please check your internet connection and try again.")
         return
 
     # Clean the input data lines
@@ -87,7 +87,8 @@ def main():
     if choice == refresh_option_num:
         print("\nManually resetting cache...")
         if refresh_catalog():
-            print("Done! Run the script again to see any new apps.")
+            print("Successfully gotten new catalogue data!")
+            print("Please press the 'open store' button to see new apps.")
         return
 
     # Action: Process an app download
@@ -107,7 +108,7 @@ def main():
         with open(local_filename, "w", encoding="utf-8") as f:
             f.write(script_contents)
             
-        print(f"✓ Success! Saved seamlessly to: {local_filename}")
+        print(f"✓ Success! Your app has been installed!")
     else:
         print(f"✗ Failed to download. Make sure '{clean_script_name}.py' exists inside your 'appFiles' folder on GitHub!")
 

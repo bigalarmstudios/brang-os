@@ -153,9 +153,9 @@ while running:
             "Welcome to the Brang OS!",
             "- use your mouse to control your square.",
             "- use your left mouse button on top of buttons to select them.",
-            "- The rest of the things are self-explanatory.",
+            "- The rest is self-explanatory.",
             "website: https://bigalarmstudios.com",
-            "WARNING! If you payed for this, you got scammed. This is free."
+            "WARNING! If you paid for this, you were scammed. This is free."
         ]
         screen.blit(font_manual_text.render(manual_text[0], True, GREEN), (100, 100))
         screen.blit(font_manual_text.render(manual_text[1], True, GREEN), (100, 150))
