@@ -14,9 +14,14 @@ CACHE_FILE = os.path.join(CACHE_DIR, "catalogue_cache.txt")
 APPS_DIR = os.path.join(SCRIPT_DIR, "installedApps")
 
 def fetch_from_github(url):
-    """Helper to download data from GitHub."""
+    """Helper to download data from GitHub (Bypassing GitHub's server-side cache)."""
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-    req = urllib.request.Request(url, headers=headers)
+    
+    # ── FIX: Append a live timestamp parameter so GitHub forces a fresh lookup ──
+    # This turns ".../catalogue.txt" into ".../catalogue.txt?t=1719524000"
+    bypass_url = f"{url}?t={int(time.time())}"
+    
+    req = urllib.request.Request(bypass_url, headers=headers)
     try:
         with urllib.request.urlopen(req) as response:
             return response.read().decode('utf-8')
@@ -113,6 +118,8 @@ def main():
         input()
     else:
         print(f"✗ Failed to download. Make sure '{clean_script_name}.py' exists inside your 'appFiles' folder on GitHub!")
+        print(f"press enter to close the store.")
+        input()
 
 if __name__ == "__main__":
     main()

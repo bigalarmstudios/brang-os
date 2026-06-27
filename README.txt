@@ -11,3 +11,8 @@ If the window is not showing correctly, do this:
     1. Press Win + i and go to "Display"
     2. Find the "Scale" setting and switch it to 100%
     3. Test again to see if it is working now
+
+If the terminal says:"no module named pygame" and "pip list" shows pygame installed:
+    1. press Win + i and search for "installed programs"
+    2. locate python
+    3. delete any python version newer then 3.13.0
