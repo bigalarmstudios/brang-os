@@ -109,6 +109,8 @@ def main():
             f.write(script_contents)
             
         print(f"✓ Success! Your app has been installed!")
+        print(f"press enter to close the store.")
+        input()
     else:
         print(f"✗ Failed to download. Make sure '{clean_script_name}.py' exists inside your 'appFiles' folder on GitHub!")
 
