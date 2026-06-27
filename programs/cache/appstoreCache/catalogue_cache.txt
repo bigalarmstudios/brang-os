@@ -1,6 +1,0 @@
-calculator
-text editor
-image viewer
-paint
-music player
-clock
