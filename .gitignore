@@ -1,2 +1,5 @@
 ._sync_*
 .sync_*.db
+.vscode/
+__pychache__/
+*.pyc
